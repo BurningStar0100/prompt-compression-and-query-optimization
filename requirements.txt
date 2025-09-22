@@ -1,0 +1,5 @@
+datasets
+pydantic
+pymongo
+pandas
+openai
