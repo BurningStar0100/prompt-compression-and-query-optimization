@@ -187,6 +187,40 @@ def setup_vector_search_index(collection: Collection,
         print(f"Index '{vector_search_index_name}' already exists.")
 
 
+def setup_vector_search_index_with_filter(collection):
+    vector_index_with_filter = "vector_index_with_filter"
+
+    new_vector_search_index_model = SearchIndexModel(
+        definition={
+            "mappings": {
+                "dynamic": True,
+                "fields": {
+                    "text_embeddings": {
+                        "dimensions": 1536,
+                        "similarity": "cosine",
+                        "type": "knnVector",
+                    },
+                     "accommodates": {
+                        "type": "number"
+                    },
+                    "bedrooms": {
+                        "type": "number"
+                    },
+                },
+            }
+        },
+        name=vector_index_with_filter,
+    )
+    
+    # Create the new index
+    try:
+        result = collection.create_search_index(model=new_vector_search_index_model)
+        print("Creating index...")
+        time.sleep(20)  # Sleep for 20 seconds, adding sleep to ensure vector index has compeleted inital sync before utilization
+        print("New index created successfully:", result)
+    except Exception as e:
+        print(f"Error creating new vector search index: {str(e)}")
+
 def vector_search_with_filter(user_query, db, collection, additional_stages=[], vector_index="vector_index_text"):
     """
     Perform a vector search in the MongoDB collection based on the user query.
@@ -240,7 +274,7 @@ def vector_search_with_filter(user_query, db, collection, additional_stages=[], 
         verbosity='executionStats') # detailed statistics about the execution of each stage of the aggregation pipeline
 
     vector_search_explain = explain_query_execution['stages'][0]['$vectorSearch']
-    millis_elapsed = vector_search_explain['explain']['collectStats']['millisElapsed']
+    millis_elapsed = vector_search_explain['explain']['collectors']['allCollectorStats']['millisElapsed']
 
     print(f"Total time for the execution to complete on the database server: {millis_elapsed} milliseconds")
 
